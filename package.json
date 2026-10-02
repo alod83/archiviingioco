@@ -1,5 +1,5 @@
 {
-  "name": "site-creator-vinext-starter",
+  "name": "archivi-in-gioco",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -8,7 +8,12 @@
   "scripts": {
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
+    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log wrangler dev --config dist/server/wrangler.json",
+    "cloudflare:login": "wrangler login",
+    "cloudflare:create-db": "wrangler d1 create archivi-in-gioco-db --location weur --update-config --binding DB --config wrangler.jsonc",
+    "cloudflare:create-bucket": "wrangler r2 bucket create archivi-in-gioco-files --location weur --update-config --binding ARCHIVE_FILES --config wrangler.jsonc",
+    "cloudflare:migrate": "wrangler d1 migrations apply archivi-in-gioco-db --remote --config wrangler.jsonc",
+    "deploy": "npm run build && wrangler deploy --config dist/server/wrangler.json",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
