@@ -210,22 +210,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="project-story" aria-labelledby="project-title">
-        <div className="story-heading">
-          <div className="eyebrow"><span aria-hidden="true">✦</span> IL PROGETTO</div>
-          <h2 id="project-title">Dalle mani allo schermo,<br />la storia continua.</h2>
-        </div>
-        <div className="story-copy">
-          <p className="story-lead">Partendo da lettere manoscritte e documenti storici, i partecipanti esploreranno il loro contesto e impareranno a manipolarli come avveniva in passato, piegandoli e richiudendoli secondo gli usi originali.</p>
-          <p>Attraverso scanner e strumenti digitali, i documenti saranno poi trasformati in copie digitali, catalogati con metadati e pubblicati online su un piccolo sito web.</p>
-          <p>Un’esperienza coinvolgente che unisce storia, manualità e innovazione per avvicinare i più giovani al mondo degli archivi e della conservazione digitale.</p>
-        </div>
-        <ol className="project-path" aria-label="Le tre fasi dell’esperienza">
-          <li><span>01</span><div><strong>Esplorare</strong><small>Osserva gli indizi e scopri il contesto storico.</small></div></li>
-          <li><span>02</span><div><strong>Digitalizzare</strong><small>Trasforma il documento in una copia digitale.</small></div></li>
-          <li><span>03</span><div><strong>Condividere</strong><small>Descrivi, cataloga e pubblica nell’archivio.</small></div></li>
-        </ol>
-      </section>
 
       <section className="archive-setup" id="archivi" aria-labelledby="archives-title">
         <div className="archive-setup-header">
@@ -350,13 +334,13 @@ export default function Home() {
               <div className="field">
                 <label htmlFor="documentType">Tipo</label>
                 <select id="documentType" name="documentType" defaultValue="Lettera">
-                  <option>Lettera</option><option>Cartolina</option><option>Biglietto</option><option>Telegramma</option><option>Altro</option>
+                  <option>Lettera</option><option>Certificato di Matrimonio</option><option>Elenco Oggetti</option><option>Altro</option>
                 </select>
               </div>
               <div className="field">
                 <label htmlFor="language">Lingua</label>
                 <select id="language" name="language" defaultValue="Italiano">
-                  <option>Italiano</option><option>Francese</option><option>Inglese</option><option>Latino</option><option>Altra</option>
+                  <option>Italiano</option><option>Ebraico</option><option>Altra</option>
                 </select>
               </div>
               <div className="field">
