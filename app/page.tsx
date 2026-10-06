@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import MarriageEntriesEditor, { MarriageEntry } from "./components/MarriageEntriesEditor";
 
 type RecordItem = {
   id: string;
@@ -8,6 +9,7 @@ type RecordItem = {
   author: string;
   recipient: string;
   documentDate: string;
+  documentYear: string;
   place: string;
   documentType: string;
   description: string;
@@ -18,6 +20,7 @@ type RecordItem = {
   fileName: string;
   fileType: string;
   createdAt: string;
+  registryEntries: string;
 };
 
 type ArchiveItem = {
@@ -70,6 +73,8 @@ export default function Home() {
   const [archiveMessage, setArchiveMessage] = useState("");
   const [creatingArchive, setCreatingArchive] = useState(false);
   const [activeArchiveId, setActiveArchiveId] = useState("");
+  const [documentType, setDocumentType] = useState("Lettera");
+  const [marriageEntries, setMarriageEntries] = useState<MarriageEntry[]>([]);
   const activeArchive = archives.find((archive) => archive.id === activeArchiveId) ?? null;
 
   useEffect(() => {
@@ -155,7 +160,7 @@ export default function Home() {
       return;
     }
     if (!file) {
-      setMessage("Prima aggiungi la scansione della lettera.");
+      setMessage("Prima aggiungi la scansione del documento.");
       fileRef.current?.focus();
       return;
     }
@@ -170,11 +175,13 @@ export default function Home() {
       if (!response.ok) throw new Error(result.error || "Salvataggio non riuscito");
 
       setArchives((current) => current.map((archive) => archive.id === activeArchiveId ? { ...archive, documentCount: Number(archive.documentCount) + 1 } : archive));
-      setMessage("Missione compiuta! La lettera è entrata nell’archivio.");
+      setMessage("Missione compiuta! Il documento è entrato nell’archivio.");
       formRef.current?.reset();
       setFile(null);
       setPreview(null);
       setDescriptionLength(0);
+      setDocumentType("Lettera");
+      setMarriageEntries([]);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Qualcosa non ha funzionato. Riprova.");
     } finally {
@@ -276,7 +283,7 @@ export default function Home() {
             ) : (
               <div className="upload-empty">
                 <div className="letter-stack" aria-hidden="true"><span>✎</span></div>
-                <h3>Porta qui la tua lettera</h3>
+                <h3>Porta qui il tuo documento</h3>
                 <p>Trascina la scansione in questo spazio</p>
                 <span className="or"><i /> oppure <i /></span>
                 <button type="button" onClick={() => fileRef.current?.click()}>Scegli il file</button>
@@ -295,48 +302,53 @@ export default function Home() {
         <section className="data-column" aria-labelledby="data-title">
           <div className="section-heading">
             <span className="section-number coral">02</span>
-            <div><h2 id="data-title">La carta d’identità</h2><p>Osserva la lettera e raccogli tutti gli indizi.</p></div>
+            <div><h2 id="data-title">La carta d’identità</h2><p>Scegli il tipo di documento e raccogli gli indizi richiesti.</p></div>
           </div>
 
           <div className="form-card">
-            <div className="field full">
-              <label htmlFor="title">Titolo della lettera <em>*</em></label>
-              <input id="title" name="title" required maxLength={120} placeholder="Es. Lettera di Giovanni a sua sorella" />
-              <small>Inventa un titolo breve che aiuti a riconoscerla.</small>
-            </div>
-
-            <div className="field-grid">
-              <div className="field">
-                <label htmlFor="author">Nome e cognome del mittente <em>*</em></label>
-                <input id="author" name="author" required maxLength={100} placeholder="Es. Giovanni Rossi" />
-              </div>
-              <div className="field">
-                <label htmlFor="recipient">Nome e cognome del destinatario</label>
-                <input id="recipient" name="recipient" maxLength={100} placeholder="Es. Maria Bianchi" />
-              </div>
-              <div className="field">
-                <label htmlFor="documentDate">Quando? <em>*</em></label>
-                <input id="documentDate" name="documentDate" required type="date" />
-              </div>
-              <div className="field">
-                <label htmlFor="place">Da dove?</label>
-                <input id="place" name="place" maxLength={100} placeholder="Città o luogo" />
+            <div className="document-type-picker">
+              <span>PRIMA SCEGLI IL TIPO DI DOCUMENTO</span>
+              <div role="radiogroup" aria-label="Tipo di documento">
+                {["Lettera", "Notificazione", "Elenco Oggetti", "Registro Matrimoni"].map((type) => <label className={documentType === type ? "selected" : ""} key={type}>
+                  <input type="radio" name="documentType" value={type} checked={documentType === type} onChange={() => { setDocumentType(type); setMarriageEntries([]); }} />
+                  <strong>{type}</strong>
+                </label>)}
               </div>
             </div>
 
             <div className="field full">
-              <label htmlFor="description">Che cosa racconta? <em>*</em></label>
-              <textarea id="description" name="description" required maxLength={500} rows={5} onChange={(event) => setDescriptionLength(event.target.value.length)} placeholder="Riassumi la lettera con parole tue: di cosa parla? Quali persone, luoghi o fatti nomina?" />
+              <label htmlFor="title">Titolo <em>*</em></label>
+              <input id="title" name="title" required maxLength={120} placeholder="Un titolo breve che aiuti a riconoscere il documento" />
+            </div>
+
+            {documentType === "Lettera" && <div className="field-grid">
+              <div className="field"><label htmlFor="author">Mittente <em>*</em></label><input id="author" name="author" required maxLength={100} placeholder="Nome e cognome" /></div>
+              <div className="field"><label htmlFor="recipient">Destinatario <em>*</em></label><input id="recipient" name="recipient" required maxLength={100} placeholder="Nome e cognome" /></div>
+              <div className="field"><label htmlFor="place">Luogo <em>*</em></label><input id="place" name="place" required maxLength={100} placeholder="Città o luogo" /></div>
+              <div className="field"><label htmlFor="documentDate">Data <em>*</em></label><input id="documentDate" name="documentDate" required type="date" /></div>
+            </div>}
+
+            {documentType === "Notificazione" && <div className="field-grid">
+              <div className="field"><label htmlFor="place">Luogo <em>*</em></label><input id="place" name="place" required maxLength={100} placeholder="Città o luogo" /></div>
+              <div className="field"><label htmlFor="documentDate">Data <em>*</em></label><input id="documentDate" name="documentDate" required type="date" /></div>
+              <div className="field"><label htmlFor="author">Autore <em>*</em></label><input id="author" name="author" required maxLength={100} placeholder="Nome e cognome o ente" /></div>
+            </div>}
+
+            {documentType === "Elenco Oggetti" && <div className="field-grid">
+              <div className="field"><label htmlFor="documentDate">Data <em>*</em></label><input id="documentDate" name="documentDate" required type="date" /></div>
+              <div className="field"><label htmlFor="place">Luogo <em>*</em></label><input id="place" name="place" required maxLength={100} placeholder="Città o luogo" /></div>
+              <div className="field"><label htmlFor="recipient">Destinatario <em>*</em></label><input id="recipient" name="recipient" required maxLength={100} placeholder="Nome e cognome o ente" /></div>
+            </div>}
+
+            <div className="field full">
+              <label htmlFor="description">Descrizione <em>*</em></label>
+              <textarea id="description" name="description" required maxLength={500} rows={5} onChange={(event) => setDescriptionLength(event.target.value.length)} placeholder="Descrivi brevemente il contenuto del documento." />
               <small className="counter">{descriptionLength} / 500</small>
             </div>
 
+            {documentType === "Registro Matrimoni" && <MarriageEntriesEditor entries={marriageEntries} onChange={setMarriageEntries} />}
+
             <div className="field-grid three">
-              <div className="field">
-                <label htmlFor="documentType">Tipo</label>
-                <select id="documentType" name="documentType" defaultValue="Lettera">
-                  <option>Lettera</option><option>Certificato di Matrimonio</option><option>Elenco Oggetti</option><option>Altro</option>
-                </select>
-              </div>
               <div className="field">
                 <label htmlFor="language">Lingua</label>
                 <select id="language" name="language" defaultValue="Italiano">

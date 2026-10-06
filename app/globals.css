@@ -129,6 +129,13 @@ button { cursor: pointer; }
 .detective-tip p { color: #685e43; margin: 4px 0 0; font-size: 12px; line-height: 1.45; }
 
 .form-card { background: rgba(255,250,240,.7); border: 1px solid #d7cebc; border-radius: 24px; padding: clamp(24px, 4vw, 42px); box-shadow: 0 18px 50px rgba(49,56,53,.06); }
+.document-type-picker { margin-bottom: 30px; padding-bottom: 28px; border-bottom: 1px dashed #cfc5b2; }
+.document-type-picker > span { display: block; margin-bottom: 12px; color: var(--coral); font-size: 9px; font-weight: 900; letter-spacing: .14em; }
+.document-type-picker > div { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+.document-type-picker label { position: relative; min-height: 54px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: #fffef9; border: 1.5px solid #c9c0ae; border-radius: 11px; transition: .2s; }
+.document-type-picker label.selected { color: var(--blue-dark); border-color: var(--blue); background: #edf4ff; box-shadow: 0 0 0 3px rgba(28,100,216,.08); }
+.document-type-picker input { accent-color: var(--blue); }
+.document-type-picker strong { font-size: 12px; }
 .field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .field.full { margin-bottom: 25px; }
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 20px; margin-bottom: 25px; }
@@ -145,6 +152,23 @@ button { cursor: pointer; }
 .extra-fields summary { list-style: none; color: var(--blue); font-weight: 900; font-size: 12px; cursor: pointer; }
 .extra-fields summary::-webkit-details-marker { display: none; }
 .extra-grid { margin: 20px 0 0; }
+.registry-editor { grid-column: 1 / -1; margin: 2px 0 25px; }
+.registry-editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 18px; background: #edf4ff; border: 1px solid #bdd0ef; border-radius: 13px; }
+.registry-editor-heading strong { font: 700 18px Georgia, serif; }
+.registry-editor-heading p { margin: 3px 0 0; color: #687476; font-size: 10px; }
+.registry-editor-heading button { flex: 0 0 auto; padding: 10px 14px; color: white; background: var(--blue); border: 0; border-radius: 999px; font-size: 10px; font-weight: 900; }
+.registry-empty { padding: 24px; color: #778181; text-align: center; font-size: 11px; border: 1px dashed #c9c0ae; border-top: 0; border-radius: 0 0 12px 12px; }
+.registry-entry { position: relative; margin: 13px 0 0; padding: 22px 18px 0; border: 1px solid #d4c9b7; border-radius: 13px; background: #fffdf8; }
+.registry-entry legend { padding: 0 8px; color: var(--coral); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.remove-registry-entry { position: absolute; top: 10px; right: 12px; padding: 5px 8px; color: #9b4436; border: 0; background: transparent; font-size: 9px; font-weight: 900; }
+.registry-metadata { margin-top: 25px; }
+.registry-metadata h3 { margin: 0 0 12px; font: 700 21px Georgia, serif; }
+.registry-metadata article { margin-bottom: 12px; padding: 15px; background: #f0eadc; border-radius: 9px; }
+.registry-metadata article > strong { color: var(--coral); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.registry-metadata article dl { margin: 10px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.registry-metadata article dl div:last-child { grid-column: 1 / -1; }
+.registry-metadata dt { color: #777e7b; font-size: 7px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+.registry-metadata dd { margin: 3px 0 0; font: 700 12px Georgia, serif; }
 .submit-row { margin-top: 22px; display: flex; align-items: center; justify-content: flex-end; gap: 18px; min-height: 54px; }
 .status-message { color: #a13f2e; font-size: 12px; line-height: 1.4; flex: 1; }
 .status-message.success { color: #24745c; font-weight: 800; }
@@ -336,6 +360,10 @@ footer span { color: var(--sun); }
   .archive-document-preview { height: 280px; }
   .workspace { padding: 45px 16px 60px; }
   .field-grid, .field-grid.three { grid-template-columns: 1fr; }
+  .document-type-picker > div { grid-template-columns: 1fr; }
+  .registry-editor-heading { align-items: flex-start; flex-direction: column; }
+  .registry-metadata article dl { grid-template-columns: 1fr; }
+  .registry-metadata article dl div:last-child { grid-column: 1; }
   .form-card { padding: 24px 19px; }
   .submit-row { align-items: stretch; flex-direction: column; }
   .save-button { justify-content: center; }

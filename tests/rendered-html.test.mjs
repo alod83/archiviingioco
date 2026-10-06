@@ -12,6 +12,10 @@ test("ships the finished archive interface", async () => {
   assert.match(page, /Archivi in gioco/i);
   assert.match(page, /Crea o scegli un archivio/);
   assert.match(page, /Conserva nell’archivio/);
+  assert.match(page, /Registro Matrimoni/);
+  assert.match(page, /Elenco Oggetti/);
+  assert.match(page, /Notificazione/);
+  assert.match(page, /MarriageEntriesEditor/);
   assert.match(page, /type="file"/);
   assert.match(archivePage, /Modifica archivio/);
   assert.match(archivePage, /Modifica scheda/);

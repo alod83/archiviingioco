@@ -2,13 +2,14 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import MarriageEntriesEditor, { MarriageEntry, parseMarriageEntries } from "../../components/MarriageEntriesEditor";
 
 type Archive = { id: string; title: string; description: string; documentCount: number; createdAt: string; updatedAt: string };
 type RecordItem = {
   id: string; archiveId: string; title: string; author: string; recipient: string;
-  documentDate: string; place: string; documentType: string; description: string;
+  documentDate: string; documentYear: string; place: string; documentType: string; description: string;
   language: string; condition: string; shelfmark: string; keywords: string;
-  fileName: string; fileType: string; createdAt: string;
+  fileName: string; fileType: string; createdAt: string; registryEntries: string;
 };
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -29,12 +30,20 @@ function formatTimestamp(value: string) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("it-IT", { dateStyle: "medium" }).format(date);
 }
 
+function RecordCardFacts({ record }: { record: RecordItem }) {
+  if (record.documentType === "Registro Matrimoni") return <><span><b>Voci</b>{parseMarriageEntries(record.registryEntries).length}</span><span><b>Tipologia</b>Registro</span></>;
+  if (record.documentType === "Notificazione") return <><span><b>Autore</b>{record.author}</span><span><b>Data</b>{formatDate(record.documentDate)}</span></>;
+  if (record.documentType === "Elenco Oggetti") return <><span><b>Destinatario</b>{record.recipient}</span><span><b>Data</b>{record.documentDate ? formatDate(record.documentDate) : record.documentYear}</span></>;
+  return <><span><b>Mittente</b>{record.author}</span><span><b>Data</b>{record.documentDate ? formatDate(record.documentDate) : record.documentYear}</span></>;
+}
+
 export default function ArchivePage() {
   const { id } = useParams<{ id: string }>();
   const [archive, setArchive] = useState<Archive | null>(null);
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<RecordItem | null>(null);
   const [editingRecord, setEditingRecord] = useState<RecordItem | null>(null);
+  const [editMarriageEntries, setEditMarriageEntries] = useState<MarriageEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -150,7 +159,7 @@ export default function ArchivePage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={`/api/records/${record.id}/file`} alt="" />
               ) : <span className="pdf-thumb"><b>PDF</b><small>documento</small></span>}<i>{String(index + 1).padStart(2, "0")}</i></span>
-              <span className="archive-document-copy"><small>{record.documentType}</small><strong>{record.title}</strong><span><b>Mittente</b>{record.author}</span><span><b>Data</b>{formatDate(record.documentDate)}</span><em>Apri scansione e metadati →</em></span>
+              <span className="archive-document-copy"><small>{record.documentType}</small><strong>{record.title}</strong><RecordCardFacts record={record} /><em>Apri scansione e metadati →</em></span>
             </button>
           ))}</div>
         )}
@@ -158,15 +167,23 @@ export default function ArchivePage() {
 
       {selectedRecord && <div className="detail-backdrop" role="presentation" onMouseDown={() => setSelectedRecord(null)}>
         <section className="record-detail" role="dialog" aria-modal="true" aria-labelledby="record-detail-title" onMouseDown={(event) => event.stopPropagation()}>
-          <header className="detail-header"><div><span>SCHEDA ARCHIVISTICA</span><h2 id="record-detail-title">{selectedRecord.title}</h2><p>Unità documentaria · {selectedRecord.documentType}</p></div><div className="detail-header-actions"><button className="edit-record-button" type="button" onClick={() => setEditingRecord(selectedRecord)}>Modifica scheda</button><button type="button" onClick={() => setSelectedRecord(null)} aria-label="Chiudi scheda">×</button></div></header>
+          <header className="detail-header"><div><span>SCHEDA ARCHIVISTICA</span><h2 id="record-detail-title">{selectedRecord.title}</h2><p>Unità documentaria · {selectedRecord.documentType}</p></div><div className="detail-header-actions"><button className="edit-record-button" type="button" onClick={() => { setEditingRecord(selectedRecord); setEditMarriageEntries(parseMarriageEntries(selectedRecord.registryEntries)); }}>Modifica scheda</button><button type="button" onClick={() => setSelectedRecord(null)} aria-label="Chiudi scheda">×</button></div></header>
           <div className="detail-body">
             <div className="scan-panel"><div className="scan-toolbar"><span>SCANSIONE DIGITALE</span><a href={`/api/records/${selectedRecord.id}/file`} target="_blank" rel="noreferrer">Apri a piena pagina ↗</a></div><div className="scan-viewer">{selectedRecord.fileType === "application/pdf" ? <object data={`/api/records/${selectedRecord.id}/file`} type="application/pdf" aria-label={`Scansione di ${selectedRecord.title}`}><a href={`/api/records/${selectedRecord.id}/file`}>Apri il PDF</a></object> : (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={`/api/records/${selectedRecord.id}/file`} alt={`Scansione completa: ${selectedRecord.title}`} />
             )}</div><small className="file-caption">File digitale: {selectedRecord.fileName}</small></div>
-            <div className="metadata-panel"><div className="metadata-intro"><span>DESCRIZIONE ARCHIVISTICA</span><p>I campi senza informazioni sono indicati con un trattino.</p></div><dl className="metadata-list">
-              <div className="metadata-wide"><dt>Titolo attribuito</dt><dd>{selectedRecord.title}</dd></div><div><dt>Tipologia documentaria</dt><dd>{selectedRecord.documentType}</dd></div><div><dt>Data cronica</dt><dd>{formatDate(selectedRecord.documentDate)}</dd></div><div><dt>Mittente · nome e cognome</dt><dd>{selectedRecord.author}</dd></div><div><dt>Destinatario · nome e cognome</dt><dd>{selectedRecord.recipient || "—"}</dd></div><div><dt>Luogo di redazione</dt><dd>{selectedRecord.place || "—"}</dd></div><div><dt>Lingua</dt><dd>{selectedRecord.language || "—"}</dd></div><div><dt>Stato di conservazione</dt><dd>{selectedRecord.condition || "—"}</dd></div><div><dt>Segnatura archivistica</dt><dd>{selectedRecord.shelfmark || "—"}</dd></div><div className="metadata-wide"><dt>Descrizione del contenuto</dt><dd className="description-value">{selectedRecord.description}</dd></div><div className="metadata-wide"><dt>Parole chiave</dt><dd>{selectedRecord.keywords || "—"}</dd></div>
-            </dl><div className="technical-data"><div><span>IDENTIFICATIVO UNIVOCO</span><code>{selectedRecord.id}</code></div><div><span>DATA DI INSERIMENTO</span><strong>{formatTimestamp(selectedRecord.createdAt)}</strong></div></div></div>
+            <div className="metadata-panel"><div className="metadata-intro"><span>DESCRIZIONE ARCHIVISTICA</span><p>Metadati specifici per {selectedRecord.documentType.toLowerCase()}.</p></div><dl className="metadata-list">
+              <div className="metadata-wide"><dt>Titolo attribuito</dt><dd>{selectedRecord.title}</dd></div>
+              <div><dt>Tipologia documentaria</dt><dd>{selectedRecord.documentType}</dd></div>
+              {selectedRecord.documentType === "Lettera" && <><div><dt>Data</dt><dd>{selectedRecord.documentDate ? formatDate(selectedRecord.documentDate) : selectedRecord.documentYear || "—"}</dd></div><div><dt>Mittente</dt><dd>{selectedRecord.author}</dd></div><div><dt>Destinatario</dt><dd>{selectedRecord.recipient}</dd></div><div><dt>Luogo</dt><dd>{selectedRecord.place}</dd></div></>}
+              {selectedRecord.documentType === "Notificazione" && <><div><dt>Data</dt><dd>{formatDate(selectedRecord.documentDate)}</dd></div><div><dt>Luogo</dt><dd>{selectedRecord.place}</dd></div><div><dt>Autore</dt><dd>{selectedRecord.author}</dd></div></>}
+              {selectedRecord.documentType === "Elenco Oggetti" && <><div><dt>Data</dt><dd>{selectedRecord.documentDate ? formatDate(selectedRecord.documentDate) : selectedRecord.documentYear || "—"}</dd></div><div><dt>Luogo</dt><dd>{selectedRecord.place}</dd></div><div><dt>Destinatario</dt><dd>{selectedRecord.recipient}</dd></div></>}
+              <div className="metadata-wide"><dt>Descrizione del contenuto</dt><dd className="description-value">{selectedRecord.description}</dd></div>
+              <div><dt>Lingua</dt><dd>{selectedRecord.language || "—"}</dd></div><div><dt>Stato di conservazione</dt><dd>{selectedRecord.condition || "—"}</dd></div><div><dt>Segnatura archivistica</dt><dd>{selectedRecord.shelfmark || "—"}</dd></div><div className="metadata-wide"><dt>Parole chiave</dt><dd>{selectedRecord.keywords || "—"}</dd></div>
+            </dl>
+            {selectedRecord.documentType === "Registro Matrimoni" && <div className="registry-metadata"><h3>Voci del registro</h3>{parseMarriageEntries(selectedRecord.registryEntries).map((entry, index) => <article key={`${entry.date}-${index}`}><strong>Voce {index + 1}</strong><dl><div><dt>Luogo</dt><dd>{entry.place}</dd></div><div><dt>Data</dt><dd>{formatDate(entry.date)}</dd></div><div><dt>Sposo</dt><dd>{entry.groom}</dd></div><div><dt>Sposa</dt><dd>{entry.bride}</dd></div><div><dt>Rabbino</dt><dd>{entry.rabbi}</dd></div></dl></article>)}</div>}
+            <div className="technical-data"><div><span>IDENTIFICATIVO UNIVOCO</span><code>{selectedRecord.id}</code></div><div><span>DATA DI INSERIMENTO</span><strong>{formatTimestamp(selectedRecord.createdAt)}</strong></div></div></div>
           </div>
         </section>
       </div>}
@@ -175,13 +192,14 @@ export default function ArchivePage() {
         <section className="record-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="record-edit-title" onMouseDown={(event) => event.stopPropagation()}>
           <header className="record-edit-header"><div><span>MODIFICA METADATI</span><h2 id="record-edit-title">Modifica la scheda</h2><p>La scansione originale resta invariata.</p></div><button type="button" onClick={() => setEditingRecord(null)} aria-label="Chiudi modifica">×</button></header>
           <form className="record-edit-form" onSubmit={updateRecord}>
+            <input type="hidden" name="documentType" value={editingRecord.documentType} />
             <div className="field wide"><label htmlFor="record-edit-title-field">Titolo attribuito <em>*</em></label><input id="record-edit-title-field" name="title" required maxLength={120} defaultValue={editingRecord.title} /></div>
-            <div className="field"><label htmlFor="record-edit-author">Mittente · nome e cognome <em>*</em></label><input id="record-edit-author" name="author" required maxLength={100} defaultValue={editingRecord.author} /></div>
-            <div className="field"><label htmlFor="record-edit-recipient">Destinatario · nome e cognome</label><input id="record-edit-recipient" name="recipient" maxLength={100} defaultValue={editingRecord.recipient} /></div>
-            <div className="field"><label htmlFor="record-edit-date">Data <em>*</em></label><input id="record-edit-date" name="documentDate" type="date" required defaultValue={editingRecord.documentDate} /></div>
-            <div className="field"><label htmlFor="record-edit-place">Luogo di redazione</label><input id="record-edit-place" name="place" maxLength={100} defaultValue={editingRecord.place} /></div>
+            {editingRecord.documentType === "Lettera" && <><div className="field"><label htmlFor="record-edit-author">Mittente <em>*</em></label><input id="record-edit-author" name="author" required maxLength={100} defaultValue={editingRecord.author} /></div><div className="field"><label htmlFor="record-edit-recipient">Destinatario <em>*</em></label><input id="record-edit-recipient" name="recipient" required maxLength={100} defaultValue={editingRecord.recipient} /></div><div className="field"><label htmlFor="record-edit-place">Luogo <em>*</em></label><input id="record-edit-place" name="place" required maxLength={100} defaultValue={editingRecord.place} /></div><div className="field"><label htmlFor="record-edit-date">Data <em>*</em></label><input id="record-edit-date" name="documentDate" type="date" required defaultValue={editingRecord.documentDate} /></div></>}
+            {editingRecord.documentType === "Notificazione" && <><div className="field"><label htmlFor="record-edit-place">Luogo <em>*</em></label><input id="record-edit-place" name="place" required maxLength={100} defaultValue={editingRecord.place} /></div><div className="field"><label htmlFor="record-edit-date">Data <em>*</em></label><input id="record-edit-date" name="documentDate" type="date" required defaultValue={editingRecord.documentDate} /></div><div className="field"><label htmlFor="record-edit-author">Autore <em>*</em></label><input id="record-edit-author" name="author" required maxLength={100} defaultValue={editingRecord.author} /></div></>}
+            {editingRecord.documentType === "Elenco Oggetti" && <><div className="field"><label htmlFor="record-edit-date">Data <em>*</em></label><input id="record-edit-date" name="documentDate" type="date" required defaultValue={editingRecord.documentDate} /></div><div className="field"><label htmlFor="record-edit-place">Luogo <em>*</em></label><input id="record-edit-place" name="place" required maxLength={100} defaultValue={editingRecord.place} /></div><div className="field"><label htmlFor="record-edit-recipient">Destinatario <em>*</em></label><input id="record-edit-recipient" name="recipient" required maxLength={100} defaultValue={editingRecord.recipient} /></div></>}
             <div className="field wide"><label htmlFor="record-edit-description">Descrizione del contenuto <em>*</em></label><textarea id="record-edit-description" name="description" required maxLength={500} rows={5} defaultValue={editingRecord.description} /></div>
-            <div className="field"><label htmlFor="record-edit-type">Tipologia documentaria</label><select id="record-edit-type" name="documentType" defaultValue={editingRecord.documentType}><option>Lettera</option><option>Cartolina</option><option>Biglietto</option><option>Telegramma</option><option>Altro</option></select></div>
+            {editingRecord.documentType === "Registro Matrimoni" && <div className="wide"><MarriageEntriesEditor idPrefix="edit-marriage" entries={editMarriageEntries} onChange={setEditMarriageEntries} /></div>}
+            <div className="field"><label>Tipologia documentaria</label><input value={editingRecord.documentType} disabled /></div>
             <div className="field"><label htmlFor="record-edit-language">Lingua</label><select id="record-edit-language" name="language" defaultValue={editingRecord.language}><option>Italiano</option><option>Francese</option><option>Inglese</option><option>Latino</option><option>Altra</option></select></div>
             <div className="field"><label htmlFor="record-edit-condition">Stato di conservazione</label><select id="record-edit-condition" name="condition" defaultValue={editingRecord.condition}><option>Ottimo</option><option>Buono</option><option>Fragile</option><option>Danneggiato</option></select></div>
             <div className="field"><label htmlFor="record-edit-shelfmark">Segnatura archivistica</label><input id="record-edit-shelfmark" name="shelfmark" maxLength={60} defaultValue={editingRecord.shelfmark} /></div>

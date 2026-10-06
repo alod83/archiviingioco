@@ -15,6 +15,7 @@ const createRecordsSql = `CREATE TABLE IF NOT EXISTS archive_records (
   author TEXT NOT NULL,
   recipient TEXT NOT NULL DEFAULT '',
   document_date TEXT NOT NULL,
+  document_year TEXT NOT NULL DEFAULT '',
   place TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL,
   document_type TEXT NOT NULL DEFAULT 'Lettera',
@@ -22,6 +23,7 @@ const createRecordsSql = `CREATE TABLE IF NOT EXISTS archive_records (
   condition TEXT NOT NULL DEFAULT 'Buono',
   shelfmark TEXT NOT NULL DEFAULT '',
   keywords TEXT NOT NULL DEFAULT '',
+  registry_entries TEXT NOT NULL DEFAULT '[]',
   file_key TEXT NOT NULL,
   file_name TEXT NOT NULL,
   file_type TEXT NOT NULL,
@@ -37,6 +39,12 @@ export async function ensureArchiveSchema(database: D1Database) {
   const columns = await database.prepare("PRAGMA table_info(archive_records)").all<{ name: string }>();
   if (!(columns.results ?? []).some((column) => column.name === "archive_id")) {
     await database.prepare("ALTER TABLE archive_records ADD COLUMN archive_id TEXT").run();
+  }
+  if (!(columns.results ?? []).some((column) => column.name === "document_year")) {
+    await database.prepare("ALTER TABLE archive_records ADD COLUMN document_year TEXT NOT NULL DEFAULT ''").run();
+  }
+  if (!(columns.results ?? []).some((column) => column.name === "registry_entries")) {
+    await database.prepare("ALTER TABLE archive_records ADD COLUMN registry_entries TEXT NOT NULL DEFAULT '[]'").run();
   }
 
   const orphan = await database.prepare("SELECT id FROM archive_records WHERE archive_id IS NULL LIMIT 1").first();

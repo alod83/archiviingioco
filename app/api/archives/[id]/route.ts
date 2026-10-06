@@ -16,6 +16,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   if (!archive) return Response.json({ error: "Archivio non trovato." }, { status: 404 });
   const records = await bindings.DB.prepare(`SELECT
     id, archive_id AS archiveId, title, author, recipient, document_date AS documentDate,
+    document_year AS documentYear, registry_entries AS registryEntries,
     place, description, document_type AS documentType, language, condition,
     shelfmark, keywords, file_name AS fileName, file_type AS fileType,
     created_at AS createdAt FROM archive_records
